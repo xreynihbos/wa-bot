@@ -2,6 +2,7 @@ const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whis
 const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 
+// Ganti dengan URL Cloudflare Worker Anda yang aktif
 const CLOUDFLARE_WORKER_URL = "https://botwaxrey.csrynaldifusototo.workers.dev/";
 
 const processedMessages = new Set();
@@ -9,7 +10,7 @@ let isBotReady = false;
 
 async function startWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
-    const sock = makeWASocket({ auth: state, printQRInTerminal: false });
+    const sock = makeWASocket({ auth: state, printQRInTerminal: true });
 
     sock.ev.on('creds.update', saveCreds);
 
@@ -55,7 +56,6 @@ async function startWhatsApp() {
             const response = await axios.post(CLOUDFLARE_WORKER_URL, { message: messageText });
             const result = response.data;
 
-            // JIKA HASILNYA GAMBAR
             if (result.type === "image" && result.imageBuffer) {
                 const imageBuffer = Buffer.from(result.imageBuffer, 'base64');
                 await sock.sendMessage(senderJid, { 
@@ -63,9 +63,7 @@ async function startWhatsApp() {
                     caption: result.caption 
                 });
                 console.log(`[X-rey AI Mengirim Gambar Berhasil]`);
-            } 
-            // JIKA HASILNYA TEKS BIASA
-            else {
+            } else {
                 await sock.sendMessage(senderJid, { text: result.reply });
                 console.log(`[X-rey AI Membalas]: ${result.reply}`);
             }
